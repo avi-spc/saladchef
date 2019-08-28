@@ -7,10 +7,12 @@ public class PlayerController : MonoBehaviour
     public int speed;
     public int playerType;
     public int pickUpsLen;
+    public int totalItems;
 
     public Vector2 rotationAngle;
 
     public Queue pickUps;
+    public List<string> choppedItems;
 
     public bool chopping;
 
@@ -23,6 +25,7 @@ public class PlayerController : MonoBehaviour
     }
 
     private void FixedUpdate() {
+        totalItems = pickUps.Count + choppedItems.Count;
     }
     // Update is called once per frame
     void Update() {
@@ -96,8 +99,22 @@ public class PlayerController : MonoBehaviour
             if (raycastHit.collider.gameObject.tag.Equals("ChopBoard")) {
                 Debug.Log(raycastHit.collider.gameObject.tag);
                 if(pickUps.Count > 0)
-                    StartCoroutine(Chopping());
+                    StartCoroutine(Chopping(pickUps.Dequeue().ToString()));
             }             
+        }
+
+        if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
+            if (raycastHit.collider.gameObject.tag.Equals("Plate")) {
+                Debug.Log(raycastHit.collider.gameObject.tag);
+                if (pickUps.Count > 0)
+                    StartCoroutine(Chopping(pickUps.Dequeue().ToString()));
+            }
+        }
+
+        if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
+            if (raycastHit.collider.gameObject.tag.Equals("Trash")) {                
+                choppedItems.Clear();
+            }
         }
     }
 
@@ -135,10 +152,11 @@ public class PlayerController : MonoBehaviour
     //}
 
 
-    IEnumerator Chopping() {
+    IEnumerator Chopping(string item) {
         Debug.Log("chopping");
         chopping = true;
         yield return new WaitForSeconds(2f);
+        choppedItems.Add(item);
         chopping = false;
     }
 }
