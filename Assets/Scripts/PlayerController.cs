@@ -8,6 +8,8 @@ public class PlayerController : MonoBehaviour
     public int playerType;
     public int pickUpsLen;
     public int totalItems;
+    public int score;
+    public int timer;
 
     public Vector2 rotationAngle;
 
@@ -28,6 +30,8 @@ public class PlayerController : MonoBehaviour
     public GameObject firepoint;
     // Start is called before the first frame update
     void Start() {
+        timer = 60;
+        StartCoroutine(Timer());
         plateInteraction = new string[2];
         pickedItemsCanvas.SetActive(false);
         choppedItemsCanvas.SetActive(false);
@@ -40,6 +44,7 @@ public class PlayerController : MonoBehaviour
     }
     // Update is called once per frame
     void Update() {
+        
         if (playerType == 1) {
             if (!chopping) {
                 if (Input.GetKey(KeyCode.W)) {
@@ -165,11 +170,13 @@ public class PlayerController : MonoBehaviour
         }
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
-            if (raycastHit.collider.gameObject.tag.Equals("Trash")) {                
+            if (raycastHit.collider.gameObject.tag.Equals("Trash") && choppedItems.Count > 0) {                
                 GameObject[] choppedItemsHUD = new GameObject[choppedItems.Count];
                 for (int i = 0; i < choppedItems.Count; i++) {
                     Destroy(GameObject.Find("Chopped").transform.GetChild(i).gameObject);
                 }
+
+                score--;
 
                 choppedItems.Clear();
                 choppedItemsCanvas.SetActive(false);
@@ -179,7 +186,41 @@ public class PlayerController : MonoBehaviour
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
             if (raycastHit.collider.gameObject.tag.Equals("Customer")) {
-                
+                if (raycastHit.collider.gameObject.GetComponent<Customer>().demands.Count == choppedItems.Count) {
+                    raycastHit.collider.gameObject.GetComponent<Customer>().demands.Sort();
+                    choppedItems.Sort();
+
+                    int demandCounter = 0;
+
+                    for (int i = 0; i < choppedItems.Count; i++) {
+                        if (choppedItems[i] == raycastHit.collider.gameObject.GetComponent<Customer>().demands[i]) {
+                            demandCounter++;
+                        }
+                        else {
+                            Debug.Log("User not satisfied");
+                            raycastHit.collider.gameObject.GetComponent<Customer>().decrementRate = 1;
+                            break;
+                        }
+                    }
+
+                    if (demandCounter == choppedItems.Count) {
+                        Debug.Log("Satisfied");
+                        raycastHit.collider.gameObject.GetComponent<Customer>().satisfied = true;
+                        score++;
+                        timer += 5;
+                        GameObject[] choppedItemsHUD = new GameObject[choppedItems.Count];
+                        for (int i = 0; i < choppedItems.Count; i++) {
+                            Destroy(GameObject.Find("Chopped").transform.GetChild(i).gameObject);
+                        }
+
+                        choppedItems.Clear();
+                        choppedItemsCanvas.SetActive(false);
+                    }
+                }
+                else {
+                    raycastHit.collider.gameObject.GetComponent<Customer>().decrementRate = 1;
+                }
+
             }
         }
 
@@ -237,5 +278,16 @@ public class PlayerController : MonoBehaviour
         vegChopped.transform.SetParent(GameObject.Find("Chopped").transform);
 
         chopping = false;
+    }
+
+    IEnumerator Timer() {
+        while (timer > 0) {
+            timer--;
+            yield return new WaitForSeconds(1f);
+        }
+    }
+
+    void FulfillCustomerDemand() {
+
     }
 }
