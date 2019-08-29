@@ -20,12 +20,15 @@ public class PlayerController : MonoBehaviour
     public GameObject vegPicked;
     public GameObject vegChopped;
 
+    public string[] plateInteraction;
+
     public bool chopping;
 
 
     public GameObject firepoint;
     // Start is called before the first frame update
     void Start() {
+        plateInteraction = new string[2];
         pickedItemsCanvas.SetActive(false);
         choppedItemsCanvas.SetActive(false);
         pickUps = new Queue();
@@ -91,15 +94,35 @@ public class PlayerController : MonoBehaviour
                     pickedItemsCanvas.SetActive(true);
 
                 if (pickUps.Count < 2) {
-                    pickUps.Enqueue(raycastHit.collider.gameObject.name);
-                    pickUpsLen = pickUps.Count;
-
-                    GameObject vPicked = Resources.Load<GameObject>("Prefabs/" + raycastHit.collider.gameObject.name);
+                    GameObject vPicked = Resources.Load<GameObject>("Prefabs/" + raycastHit.collider.gameObject.name + "Icon");
                     vegPicked = Instantiate(vPicked, transform.position, Quaternion.identity);
                     vegPicked.transform.SetParent(GameObject.Find("Picked").transform);
+
+                    pickUps.Enqueue(raycastHit.collider.gameObject.name);
+                    pickUpsLen = pickUps.Count;
                 }
             }
-            
+
+            RaycastHit[] raycastHits = Physics.RaycastAll(firepoint.transform.position, rotationAngle, 10000f);
+
+            foreach(var e in raycastHits) {
+                if (e.collider.gameObject.tag.Equals("VegOnPlate")) {
+                    if (!pickedItemsCanvas.activeSelf)
+                        pickedItemsCanvas.SetActive(true);
+
+                    if (pickUps.Count < 2) {
+                        GameObject vPicked = Resources.Load<GameObject>("Prefabs/" + e.collider.gameObject.name + "Icon");
+                        vegPicked = Instantiate(vPicked, transform.position, Quaternion.identity);
+                        vegPicked.transform.SetParent(GameObject.Find("Picked").transform);
+
+                        pickUps.Enqueue(e.collider.gameObject.name);
+                        pickUpsLen = pickUps.Count;
+                    }
+
+                    Destroy(e.collider.gameObject);
+                }
+            }
+
             Debug.Log(pickUps.Count);
             foreach (var item in pickUps) {
                 Debug.Log(item);
@@ -116,6 +139,7 @@ public class PlayerController : MonoBehaviour
             if (raycastHit.collider.gameObject.tag.Equals("ChopBoard")) {
                 Debug.Log(raycastHit.collider.gameObject.tag);
                 if (pickUps.Count > 0) {
+
                     StartCoroutine(Chopping(pickUps.Dequeue().ToString()));
                     if (pickUps.Count == 0) {
                         pickedItemsCanvas.SetActive(false);
@@ -126,15 +150,30 @@ public class PlayerController : MonoBehaviour
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
             if (raycastHit.collider.gameObject.tag.Equals("Plate")) {
-                if (raycastHit.collider.gameObject.GetComponent<Plate>().itemPlaced == "") {
-                    raycastHit.collider.gameObject.SendMessage("PlaceItem", pickUps.Dequeue());
+                if (raycastHit.collider.gameObject.GetComponent<Plate>().itemPlaced == null) {
+                    Destroy(GameObject.Find("Picked").transform.GetChild(0).gameObject);
+                    plateInteraction[0] = pickUps.Dequeue().ToString();
+                    plateInteraction[1] = raycastHit.collider.gameObject.name;
+                    raycastHit.collider.gameObject.SendMessage("PlaceItem", plateInteraction);
+                    Debug.Log(pickUps.Count);
+
+                    if (pickUps.Count == 0) {
+                        pickedItemsCanvas.SetActive(false);
+                    }
                 }
             }
         }
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
             if (raycastHit.collider.gameObject.tag.Equals("Trash")) {                
+                GameObject[] choppedItemsHUD = new GameObject[choppedItems.Count];
+                for (int i = 0; i < choppedItems.Count; i++) {
+                    Destroy(GameObject.Find("Chopped").transform.GetChild(i).gameObject);
+                }
+
                 choppedItems.Clear();
+                choppedItemsCanvas.SetActive(false);
+
             }
         }
 
@@ -183,13 +222,17 @@ public class PlayerController : MonoBehaviour
     IEnumerator Chopping(string item) {
         Debug.Log("chopping");
         chopping = true;
+        Debug.Log(pickUps.Count);
+        
+        Destroy(GameObject.Find("Picked").transform.GetChild(0).gameObject);
+
         yield return new WaitForSeconds(2f);
         choppedItems.Add(item);
         if (choppedItems.Count == 1) {
             choppedItemsCanvas.SetActive(true);
         }
 
-        GameObject cPicked = Resources.Load<GameObject>("Prefabs/" + item + "chop");
+        GameObject cPicked = Resources.Load<GameObject>("Prefabs/" + item + "chopIcon");
         vegChopped = Instantiate(cPicked, transform.position, Quaternion.identity);
         vegChopped.transform.SetParent(GameObject.Find("Chopped").transform);
 

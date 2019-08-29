@@ -9,6 +9,7 @@ TagManager:
   - Trash
   - Plate
   - Directors
+  - VegOnPlate
   layers:
   - Default
   - TransparentFX
