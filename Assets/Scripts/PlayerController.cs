@@ -14,12 +14,20 @@ public class PlayerController : MonoBehaviour
     public Queue pickUps;
     public List<string> choppedItems;
 
+    public GameObject pickedItemsCanvas;
+    public GameObject choppedItemsCanvas;
+
+    public GameObject vegPicked;
+    public GameObject vegChopped;
+
     public bool chopping;
 
 
     public GameObject firepoint;
     // Start is called before the first frame update
     void Start() {
+        pickedItemsCanvas.SetActive(false);
+        choppedItemsCanvas.SetActive(false);
         pickUps = new Queue();
         rotationAngle = Vector2.up;
     }
@@ -78,11 +86,20 @@ public class PlayerController : MonoBehaviour
         RaycastHit raycastHit;
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle , out raycastHit, 10000f)) {
-            if(raycastHit.collider.gameObject.tag.Equals("Veg"))
+            if (raycastHit.collider.gameObject.tag.Equals("Veg")) {
+                if (!pickedItemsCanvas.activeSelf)
+                    pickedItemsCanvas.SetActive(true);
+
                 if (pickUps.Count < 2) {
                     pickUps.Enqueue(raycastHit.collider.gameObject.name);
                     pickUpsLen = pickUps.Count;
+
+                    GameObject vPicked = Resources.Load<GameObject>("Prefabs/" + raycastHit.collider.gameObject.name);
+                    vegPicked = Instantiate(vPicked, transform.position, Quaternion.identity);
+                    vegPicked.transform.SetParent(GameObject.Find("Picked").transform);
                 }
+            }
+            
             Debug.Log(pickUps.Count);
             foreach (var item in pickUps) {
                 Debug.Log(item);
@@ -98,16 +115,20 @@ public class PlayerController : MonoBehaviour
         if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
             if (raycastHit.collider.gameObject.tag.Equals("ChopBoard")) {
                 Debug.Log(raycastHit.collider.gameObject.tag);
-                if(pickUps.Count > 0)
+                if (pickUps.Count > 0) {
                     StartCoroutine(Chopping(pickUps.Dequeue().ToString()));
+                    if (pickUps.Count == 0) {
+                        pickedItemsCanvas.SetActive(false);
+                    }
+                }
             }             
         }
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
             if (raycastHit.collider.gameObject.tag.Equals("Plate")) {
-                Debug.Log(raycastHit.collider.gameObject.tag);
-                if (pickUps.Count > 0)
-                    StartCoroutine(Chopping(pickUps.Dequeue().ToString()));
+                if (raycastHit.collider.gameObject.GetComponent<Plate>().itemPlaced == "") {
+                    raycastHit.collider.gameObject.SendMessage("PlaceItem", pickUps.Dequeue());
+                }
             }
         }
 
@@ -116,6 +137,13 @@ public class PlayerController : MonoBehaviour
                 choppedItems.Clear();
             }
         }
+
+        if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
+            if (raycastHit.collider.gameObject.tag.Equals("Customer")) {
+                
+            }
+        }
+
     }
 
     void Throw() {
@@ -157,6 +185,14 @@ public class PlayerController : MonoBehaviour
         chopping = true;
         yield return new WaitForSeconds(2f);
         choppedItems.Add(item);
+        if (choppedItems.Count == 1) {
+            choppedItemsCanvas.SetActive(true);
+        }
+
+        GameObject cPicked = Resources.Load<GameObject>("Prefabs/" + item + "chop");
+        vegChopped = Instantiate(cPicked, transform.position, Quaternion.identity);
+        vegChopped.transform.SetParent(GameObject.Find("Chopped").transform);
+
         chopping = false;
     }
 }
