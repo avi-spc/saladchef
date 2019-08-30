@@ -12,6 +12,7 @@ TagManager:
   - VegOnPlate
   - Customer
   - Stopper
+  - Pickups
   layers:
   - Default
   - TransparentFX

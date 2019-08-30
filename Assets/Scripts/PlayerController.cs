@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    public GameObject UIDisplay;
+
     public int speed;
     public int playerType;
     public int pickUpsLen;
@@ -46,7 +48,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update() {
         
-        if (playerType == 1) {
+        if (playerType == 1 && timer > -1) {
             if (!chopping) {
                 if (Input.GetKey(KeyCode.W)) {
                     transform.Translate(Vector2.up * speed * Time.deltaTime);
@@ -70,28 +72,41 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
+            UIDisplay.GetComponent<UIDisplay>().player1_Timer.text = "Time left: " + timer.ToString();
+            UIDisplay.GetComponent<UIDisplay>().player1_Score.text = "Score: " + score.ToString();
         }
-        else {
-            if (Input.GetKey(KeyCode.UpArrow)) {
-                transform.Translate(Vector2.up * speed * Time.deltaTime);
-            }
-            if (Input.GetKey(KeyCode.DownArrow)) {
-                transform.Translate(Vector2.down * speed * Time.deltaTime);
-            }
-            if (Input.GetKey(KeyCode.LeftArrow)) {
-                transform.Translate(Vector2.left * speed * Time.deltaTime);
-            }
-            if (Input.GetKey(KeyCode.RightArrow)) {
-                transform.Translate(Vector2.right * speed * Time.deltaTime);
-            }
+        else if(playerType == 2 && timer > -1) {
+            if (!chopping) {
+                if (Input.GetKey(KeyCode.UpArrow)) {
+                    transform.Translate(Vector2.up * speed * Time.deltaTime);
+                }
+                if (Input.GetKey(KeyCode.DownArrow)) {
+                    transform.Translate(Vector2.down * speed * Time.deltaTime);
+                }
+                if (Input.GetKey(KeyCode.LeftArrow)) {
+                    transform.Translate(Vector2.left * speed * Time.deltaTime);
+                }
+                if (Input.GetKey(KeyCode.RightArrow)) {
+                    transform.Translate(Vector2.right * speed * Time.deltaTime);
+                }
 
+                if (Input.GetKeyDown(KeyCode.Keypad0)) {
+                    Pick();
+                }
+
+                if (Input.GetKeyDown(KeyCode.Keypad1)) {
+                    Drop();
+                }
+
+            }
+            UIDisplay.GetComponent<UIDisplay>().player2_Timer.text = "Time left: " + timer.ToString();
+            UIDisplay.GetComponent<UIDisplay>().player2_Score.text = "Score: " + score.ToString();
         }
-            
+
+
     }
 
     void Pick() {
-        Debug.DrawRay(firepoint.transform.position, rotationAngle, Color.blue, 10000);
-
         RaycastHit raycastHit;
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle , out raycastHit, 10000f)) {
@@ -102,10 +117,11 @@ public class PlayerController : MonoBehaviour
                 if (pickUps.Count < 2) {
                     GameObject vPicked = Resources.Load<GameObject>("Prefabs/" + raycastHit.collider.gameObject.name + "Icon");
                     vegPicked = Instantiate(vPicked, transform.position, Quaternion.identity);
-                    vegPicked.transform.SetParent(GameObject.Find("Picked").transform);
+                    vegPicked.transform.SetParent(pickedItemsCanvas.transform);
 
                     pickUps.Enqueue(raycastHit.collider.gameObject.name);
                     pickUpsLen = pickUps.Count;
+                    Debug.Log(playerType .ToString() + pickUps.Count.ToString());
                 }
             }
 
@@ -119,7 +135,7 @@ public class PlayerController : MonoBehaviour
                     if (pickUps.Count < 2) {
                         GameObject vPicked = Resources.Load<GameObject>("Prefabs/" + e.collider.gameObject.name + "Icon");
                         vegPicked = Instantiate(vPicked, transform.position, Quaternion.identity);
-                        vegPicked.transform.SetParent(GameObject.Find("Picked").transform);
+                        vegPicked.transform.SetParent(pickedItemsCanvas.transform);
 
                         pickUps.Enqueue(e.collider.gameObject.name);
                         pickUpsLen = pickUps.Count;
@@ -129,7 +145,6 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
-            Debug.Log(pickUps.Count);
             foreach (var item in pickUps) {
                 Debug.Log(item);
             }
@@ -143,9 +158,7 @@ public class PlayerController : MonoBehaviour
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
             if (raycastHit.collider.gameObject.tag.Equals("ChopBoard")) {
-                Debug.Log(raycastHit.collider.gameObject.tag);
                 if (pickUps.Count > 0) {
-
                     StartCoroutine(Chopping(pickUps.Dequeue().ToString()));
                     if (pickUps.Count == 0) {
                         pickedItemsCanvas.SetActive(false);
@@ -157,7 +170,7 @@ public class PlayerController : MonoBehaviour
         if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
             if (raycastHit.collider.gameObject.tag.Equals("Plate")) {
                 if (raycastHit.collider.gameObject.GetComponent<Plate>().itemPlaced == null) {
-                    Destroy(GameObject.Find("Picked").transform.GetChild(0).gameObject);
+                    Destroy(pickedItemsCanvas.transform.GetChild(0).gameObject);
                     plateInteraction[0] = pickUps.Dequeue().ToString();
                     plateInteraction[1] = raycastHit.collider.gameObject.name;
                     raycastHit.collider.gameObject.SendMessage("PlaceItem", plateInteraction);
@@ -174,7 +187,7 @@ public class PlayerController : MonoBehaviour
             if (raycastHit.collider.gameObject.tag.Equals("Trash") && choppedItems.Count > 0) {                
                 GameObject[] choppedItemsHUD = new GameObject[choppedItems.Count];
                 for (int i = 0; i < choppedItems.Count; i++) {
-                    Destroy(GameObject.Find("Chopped").transform.GetChild(i).gameObject);
+                    Destroy(choppedItemsCanvas.transform.GetChild(i).gameObject);
                 }
 
                 score--;
@@ -200,6 +213,7 @@ public class PlayerController : MonoBehaviour
                         else {
                             Debug.Log("User not satisfied");
                             raycastHit.collider.gameObject.GetComponent<Customer>().decrementRate = 1;
+                            raycastHit.collider.gameObject.SendMessage("WrongCombination", playerType);
                             break;
                         }
                     }
@@ -209,11 +223,11 @@ public class PlayerController : MonoBehaviour
                         raycastHit.collider.gameObject.GetComponent<Customer>().satisfied = true;
                         raycastHit.collider.gameObject.GetComponent<Customer>().playerTypeSatisfied = playerType;
                         raycastHit.collider.gameObject.SendMessage("GeneratePickups");
-                        score++;
+                        score += choppedItems.Count ;
                         timer += 5;
                         GameObject[] choppedItemsHUD = new GameObject[choppedItems.Count];
                         for (int i = 0; i < choppedItems.Count; i++) {
-                            Destroy(GameObject.Find("Chopped").transform.GetChild(i).gameObject);
+                            Destroy(choppedItemsCanvas.transform.GetChild(i).gameObject);
                         }
 
                         choppedItems.Clear();
@@ -222,6 +236,7 @@ public class PlayerController : MonoBehaviour
                 }
                 else {
                     raycastHit.collider.gameObject.GetComponent<Customer>().decrementRate = 1;
+                    raycastHit.collider.gameObject.SendMessage("WrongCombination", playerType);
                 }
 
             }
@@ -258,12 +273,15 @@ public class PlayerController : MonoBehaviour
                 if (col.gameObject.GetComponent<PowerPickups>().pickupType == "speed") {
                     speed *= 2;
                     Invoke("NormalizeSpeed", 10f);
+                    Destroy(col.gameObject);
                 }
                 else if (col.gameObject.GetComponent<PowerPickups>().pickupType == "time") {
                     timer += 20;
+                    Destroy(col.gameObject);
                 }
                 else if (col.gameObject.GetComponent<PowerPickups>().pickupType == "score") {
                     score += 3;
+                    Destroy(col.gameObject);
                 }
             }
         }
@@ -278,7 +296,7 @@ public class PlayerController : MonoBehaviour
         chopping = true;
         Debug.Log(pickUps.Count);
         
-        Destroy(GameObject.Find("Picked").transform.GetChild(0).gameObject);
+        Destroy(pickedItemsCanvas.transform.GetChild(0).gameObject);
 
         yield return new WaitForSeconds(2f);
         choppedItems.Add(item);
@@ -288,7 +306,7 @@ public class PlayerController : MonoBehaviour
 
         GameObject cPicked = Resources.Load<GameObject>("Prefabs/" + item + "chopIcon");
         vegChopped = Instantiate(cPicked, transform.position, Quaternion.identity);
-        vegChopped.transform.SetParent(GameObject.Find("Chopped").transform);
+        vegChopped.transform.SetParent(choppedItemsCanvas.transform);
 
         chopping = false;
     }

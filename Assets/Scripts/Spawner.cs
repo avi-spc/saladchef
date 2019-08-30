@@ -5,6 +5,8 @@ using System.Linq;
 
 public class Spawner : MonoBehaviour
 {
+    public GameObject UIDisplay;
+
     public GameObject spawnPrefab;
 
     public GameObject customerPrefab;
@@ -16,6 +18,8 @@ public class Spawner : MonoBehaviour
     System.Random rnd = new System.Random();
 
     public bool gameOver;
+
+    public PlayerController[] playerControllers;
 
     [System.Serializable]
     public struct SpawnPoint {
@@ -40,19 +44,28 @@ public class Spawner : MonoBehaviour
     }
     void Start()
     {
+        playerControllers = FindObjectsOfType<PlayerController>();
+
         StartCoroutine(CallSpwaner());
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        
+    void Update() {
+        if (playerControllers[0].timer == 0 && playerControllers[1].timer == 0) {
+            gameOver = true;
+
+            UIDisplay.GetComponent<UIDisplay>().gameOverPanel.SetActive(true);
+
+            UIDisplay.GetComponent<UIDisplay>().player1_finalScore.text = playerControllers[1].score.ToString();
+            UIDisplay.GetComponent<UIDisplay>().player2_finalScore.text = playerControllers[0].score.ToString();
+
+        }
     }
 
     IEnumerator CallSpwaner() {
         while (!gameOver) {
             CalculateEmptySpots();
-            yield return new WaitForSeconds(8f);
+            yield return new WaitForSeconds(28f);
         }
     }
 
@@ -61,7 +74,6 @@ public class Spawner : MonoBehaviour
         for (int i = 0; i < customerSpawnPoints.Length; i++) {
             if (!customerSpawnPoints[i].isOccupied) {
                 emptySpots.Add(i);
-                Debug.Log(i);
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Customer : MonoBehaviour
 {
@@ -10,12 +11,14 @@ public class Customer : MonoBehaviour
     public List<string> demands;
     public List<string> specialPickups = new List<string> { "speed", "time", "score" };
 
+    public Image timer;
 
     public GameObject[] pickupDimension = new GameObject[3];
 
     public int numOfDemands;
     public int playerTypeSatisfied;
     public int spawnedIndex;
+    public int penaltyToPlayer;
 
     public float waitTime;
     public float totalWaitTime;
@@ -24,13 +27,20 @@ public class Customer : MonoBehaviour
     public bool satisfied;
     public bool stop;
 
+    public PlayerController[] playerControllers;
+
     // Start is called before the first frame update
     void Start()
     {
+        playerControllers = FindObjectsOfType<PlayerController>();
+
+        penaltyToPlayer = 1;
+
         spawner = GameObject.Find("CustomerSpawnPoints").GetComponent<Spawner>();
-        totalWaitTime = waitTime = 60;
         decrementRate = 0.5f;
         numOfDemands = Random.Range(1, 4);
+
+        totalWaitTime = waitTime = numOfDemands * 10;
 
         for (int i = 0; i < numOfDemands; i++) {
             demands.Add(allDemands[Random.Range(0, allDemands.Count)]);
@@ -62,14 +72,21 @@ public class Customer : MonoBehaviour
         }
 
         if (transform.position.y == 4.62f)
-            stop = true;                       
+            stop = true;
     }
 
     IEnumerator Wait() {
         while (waitTime > 0 && !satisfied) {
             waitTime -= decrementRate;
+            timer.fillAmount = waitTime/totalWaitTime;
             yield return new WaitForSeconds(0.5f);
-        }       
+        }
+
+        if (waitTime == 0) {
+            foreach(var pC in playerControllers) {
+                pC.score -= penaltyToPlayer;
+            }
+        }
     }
 
     void GeneratePickups() {
@@ -80,6 +97,14 @@ public class Customer : MonoBehaviour
             GameObject pickUpObject = Instantiate(pickUpPrefab, new Vector3(Random.Range(pickupDimension[0].transform.position.x, pickupDimension[2].transform.position.x), Random.Range(pickupDimension[0].transform.position.y, pickupDimension[1].transform.position.y), 0), Quaternion.identity);
             pickUpObject.GetComponent<PowerPickups>().forPlayer = playerTypeSatisfied;
             pickUpObject.GetComponent<PowerPickups>().pickupType = specialPickups[pT];
+        }
+    }
+
+    public void WrongCombination(int playerType) {
+        foreach (var pC in playerControllers) {
+            if (pC.playerType == playerType) {
+                pC.score -= 2 * penaltyToPlayer;
+            }
         }
     }
 
