@@ -30,6 +30,7 @@ public class PlayerController : MonoBehaviour
     public GameObject firepoint;
     // Start is called before the first frame update
     void Start() {
+        speed = 2;
         timer = 60;
         StartCoroutine(Timer());
         plateInteraction = new string[2];
@@ -206,6 +207,8 @@ public class PlayerController : MonoBehaviour
                     if (demandCounter == choppedItems.Count) {
                         Debug.Log("Satisfied");
                         raycastHit.collider.gameObject.GetComponent<Customer>().satisfied = true;
+                        raycastHit.collider.gameObject.GetComponent<Customer>().playerTypeSatisfied = playerType;
+                        raycastHit.collider.gameObject.SendMessage("GeneratePickups");
                         score++;
                         timer += 5;
                         GameObject[] choppedItemsHUD = new GameObject[choppedItems.Count];
@@ -249,16 +252,26 @@ public class PlayerController : MonoBehaviour
             rotationAngle = Vector2.up;
             firepoint.transform.localPosition = new Vector2(0, 0.34f);
         }
+
+        if (col.gameObject.tag.Equals("Pickups")) {
+            if (col.gameObject.GetComponent<PowerPickups>().forPlayer == playerType) {
+                if (col.gameObject.GetComponent<PowerPickups>().pickupType == "speed") {
+                    speed *= 2;
+                    Invoke("NormalizeSpeed", 10f);
+                }
+                else if (col.gameObject.GetComponent<PowerPickups>().pickupType == "time") {
+                    timer += 20;
+                }
+                else if (col.gameObject.GetComponent<PowerPickups>().pickupType == "score") {
+                    score += 3;
+                }
+            }
+        }
     }
 
-    //private void OnCollisionStay2D(Collision2D col) {
-    //    if (Input.GetKeyDown(KeyCode.C)) {
-    //        if (col.gameObject.tag.Equals("ChopBoard")) {
-    //            StartCoroutine(Chopping());
-    //        }
-    //    }
-    //}
-
+    public void NormalizeSpeed() {
+        speed = 2;
+    }
 
     IEnumerator Chopping(string item) {
         Debug.Log("chopping");
