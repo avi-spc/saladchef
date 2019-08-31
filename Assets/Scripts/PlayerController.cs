@@ -24,6 +24,8 @@ public class PlayerController : MonoBehaviour
     public GameObject vegPicked;
     public GameObject vegChopped;
 
+    public GameObject[] moveBounds = new GameObject[3];
+
     public string[] plateInteraction;
 
     public bool chopping;
@@ -31,6 +33,8 @@ public class PlayerController : MonoBehaviour
     private Animator animator;
 
     public GameObject firepoint;
+
+    public GameObject chopProgress;
     // Start is called before the first frame update
     void Start() {
         animator = GetComponent<Animator>();
@@ -41,29 +45,29 @@ public class PlayerController : MonoBehaviour
         choppedItemsCanvas.SetActive(false);
         pickUps = new Queue();
         rotationAngle = Vector2.up;
+        chopProgress.SetActive(false);
     }
 
     private void FixedUpdate() {
         totalItems = pickUps.Count + choppedItems.Count;
     }
     // Update is called once per frame
-    void Update() {
-        
+    void Update() {        
         if (playerType == 1 && timer > -1) {
             if (!chopping) {
-                if (Input.GetKey(KeyCode.W)) {
+                if (Input.GetKey(KeyCode.W) && transform.position.y < moveBounds[0].transform.position.y) {
                     transform.Translate(Vector2.up * speed * Time.deltaTime);
                     animator.SetInteger("F 1", 0);
                 }
-                else if (Input.GetKey(KeyCode.S)) {
+                else if (Input.GetKey(KeyCode.S) && transform.position.y > moveBounds[1].transform.position.y) {
                     transform.Translate(Vector2.down * speed * Time.deltaTime);
                     animator.SetInteger("F 1", 1);
                 }
-                else if (Input.GetKey(KeyCode.A)) {
+                else if (Input.GetKey(KeyCode.A) && transform.position.x > moveBounds[0].transform.position.x) {
                     transform.Translate(Vector2.left * speed * Time.deltaTime);
                     animator.SetInteger("F 1", 2);
                 }
-                else if (Input.GetKey(KeyCode.D)) {
+                else if (Input.GetKey(KeyCode.D) && transform.position.x < moveBounds[2].transform.position.x) {
                     transform.Translate(Vector2.right * speed * Time.deltaTime);
                     animator.SetInteger("F 1", 3);
                 }
@@ -85,22 +89,22 @@ public class PlayerController : MonoBehaviour
         }
         else if(playerType == 2 && timer > -1) {
             if (!chopping) {
-                if (Input.GetKey(KeyCode.UpArrow)) {
+                if (Input.GetKey(KeyCode.UpArrow) && transform.position.y < moveBounds[0].transform.position.y) {
                     transform.Translate(Vector2.up * speed * Time.deltaTime);
                     animator.SetInteger("F 1", 0);
 
                 }
-                else if (Input.GetKey(KeyCode.DownArrow)) {
+                else if (Input.GetKey(KeyCode.DownArrow) && transform.position.y > moveBounds[1].transform.position.y) {
                     transform.Translate(Vector2.down * speed * Time.deltaTime);
                     animator.SetInteger("F 1", 1);
 
                 }
-                else if (Input.GetKey(KeyCode.LeftArrow)) {
+                else if (Input.GetKey(KeyCode.LeftArrow) && transform.position.x > moveBounds[0].transform.position.x) {
                     transform.Translate(Vector2.left * speed * Time.deltaTime);
                     animator.SetInteger("F 1", 2);
 
                 }
-                else if (Input.GetKey(KeyCode.RightArrow)) {
+                else if (Input.GetKey(KeyCode.RightArrow) && transform.position.x < moveBounds[2].transform.position.x) {
                     transform.Translate(Vector2.right * speed * Time.deltaTime);
                     animator.SetInteger("F 1", 3);
                 }
@@ -125,6 +129,7 @@ public class PlayerController : MonoBehaviour
     }
 
     void Pick() {
+        Debug.DrawRay(firepoint.transform.position, rotationAngle, Color.blue, 10000f);
         RaycastHit raycastHit;
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle , out raycastHit, 10000f)) {
@@ -265,9 +270,6 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    void Throw() {
-    }
-
     private void OnTriggerEnter(Collider col) {
         if (col.gameObject.name.Equals("Left")) {
             rotationAngle = Vector2.left;
@@ -319,6 +321,8 @@ public class PlayerController : MonoBehaviour
         
         Destroy(pickedItemsCanvas.transform.GetChild(0).gameObject);
 
+        chopProgress.SetActive(true);
+
         yield return new WaitForSeconds(2f);
         choppedItems.Add(item);
         if (choppedItems.Count == 1) {
@@ -328,6 +332,8 @@ public class PlayerController : MonoBehaviour
         GameObject cPicked = Resources.Load<GameObject>("Prefabs/" + item + "chopIcon");
         vegChopped = Instantiate(cPicked, transform.position, Quaternion.identity);
         vegChopped.transform.SetParent(choppedItemsCanvas.transform);
+
+        chopProgress.SetActive(false);
 
         chopping = false;
     }

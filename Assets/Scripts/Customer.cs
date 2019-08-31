@@ -43,7 +43,7 @@ public class Customer : MonoBehaviour
         decrementRate = 0.5f;
         numOfDemands = Random.Range(1, 4);
 
-        totalWaitTime = waitTime = numOfDemands * 10 * 2;
+        totalWaitTime = waitTime = numOfDemands * 15;
 
         for (int i = 0; i < numOfDemands; i++) {
             demands.Add(allDemands[Random.Range(0, allDemands.Count)]);

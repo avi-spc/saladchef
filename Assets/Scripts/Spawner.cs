@@ -69,14 +69,14 @@ public class Spawner : MonoBehaviour
                 Destroy(c.gameObject);
             }
 
-            UIDisplay.GetComponent<UIDisplay>().winnerText.text = Mathf.Max(playerControllers[0].score, playerControllers[1].score) == playerControllers[1].score ? "Player " + playerControllers[1].playerType : "Player " + playerControllers[0].playerType;
+            UIDisplay.GetComponent<UIDisplay>().winnerText.text = (Mathf.Max(playerControllers[0].score, playerControllers[1].score) == playerControllers[1].score ? "Player " + playerControllers[1].playerType : "Player " + playerControllers[0].playerType) + " wins";  
         }
     }
 
     IEnumerator CallSpwaner() {
         while (!gameOver) {
             CalculateEmptySpots();
-            yield return new WaitForSeconds(28f);
+            yield return new WaitForSeconds(20f);
         }
     }
 
