@@ -10,6 +10,8 @@ public class Spawner : MonoBehaviour
     public GameObject spawnPrefab;
 
     public GameObject customerPrefab;
+
+    public Customer[] allCustomers;
     // Start is called before the first frame update
     public int numOfCustomers;
     public List<int> emptySpots;
@@ -59,6 +61,15 @@ public class Spawner : MonoBehaviour
             UIDisplay.GetComponent<UIDisplay>().player1_finalScore.text = playerControllers[1].score.ToString();
             UIDisplay.GetComponent<UIDisplay>().player2_finalScore.text = playerControllers[0].score.ToString();
 
+        }
+
+        if (gameOver) {
+            allCustomers = FindObjectsOfType<Customer>();
+            foreach (var c in allCustomers) {
+                Destroy(c.gameObject);
+            }
+
+            UIDisplay.GetComponent<UIDisplay>().winnerText.text = Mathf.Max(playerControllers[0].score, playerControllers[1].score) == playerControllers[1].score ? "Player " + playerControllers[1].playerType : "Player " + playerControllers[0].playerType;
         }
     }
 

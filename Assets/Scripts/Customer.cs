@@ -19,6 +19,7 @@ public class Customer : MonoBehaviour
     public int playerTypeSatisfied;
     public int spawnedIndex;
     public int penaltyToPlayer;
+    public HashSet<int> playersWronglySatisfied = new HashSet<int>();
 
     public float waitTime;
     public float totalWaitTime;
@@ -26,6 +27,7 @@ public class Customer : MonoBehaviour
 
     public bool satisfied;
     public bool stop;
+    public bool isAngry;
 
     public PlayerController[] playerControllers;
 
@@ -40,7 +42,7 @@ public class Customer : MonoBehaviour
         decrementRate = 0.5f;
         numOfDemands = Random.Range(1, 4);
 
-        totalWaitTime = waitTime = numOfDemands * 10;
+        totalWaitTime = waitTime = numOfDemands * 10 * 2;
 
         for (int i = 0; i < numOfDemands; i++) {
             demands.Add(allDemands[Random.Range(0, allDemands.Count)]);
@@ -65,7 +67,7 @@ public class Customer : MonoBehaviour
         if (!stop) {
             transform.position = Vector3.MoveTowards(transform.position, new Vector3(transform.position.x, 4.62f, transform.position.z), Random.Range(0.001f, 0.1f));
         }
-        if (satisfied || waitTime == 0) {
+        if (satisfied || waitTime <= 0) {
             spawner.customerSpawnPoints[spawnedIndex].isOccupied = false;
             transform.Translate(Vector3.up * Random.Range(2, 3) * Time.deltaTime);
             Destroy(gameObject, 2f);
@@ -82,9 +84,19 @@ public class Customer : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
         }
 
-        if (waitTime == 0) {
+        if (waitTime <= 0) {
             foreach(var pC in playerControllers) {
-                pC.score -= penaltyToPlayer;
+                if(pC.timer!=0)
+                    pC.score -= penaltyToPlayer;
+            }
+
+            if (isAngry) {
+                penaltyToPlayer = 2 * penaltyToPlayer;
+                foreach (var pC in playerControllers) {
+                    if (playersWronglySatisfied.Contains(pC.playerType)) {
+                        pC.score -= penaltyToPlayer;
+                    }
+                }
             }
         }
     }
@@ -100,13 +112,4 @@ public class Customer : MonoBehaviour
         }
     }
 
-    public void WrongCombination(int playerType) {
-        foreach (var pC in playerControllers) {
-            if (pC.playerType == playerType) {
-                pC.score -= 2 * penaltyToPlayer;
-            }
-        }
-    }
-
-    
 }

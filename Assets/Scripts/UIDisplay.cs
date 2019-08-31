@@ -17,6 +17,10 @@ public class UIDisplay : MonoBehaviour
     public Text player1_finalScore;
     public Text player2_finalScore;
 
+    public Text winnerText;
+
+    public GameObject topScorePanel;
+
 
     // Start is called before the first frame update
     void Start()

@@ -213,7 +213,9 @@ public class PlayerController : MonoBehaviour
                         else {
                             Debug.Log("User not satisfied");
                             raycastHit.collider.gameObject.GetComponent<Customer>().decrementRate = 1;
-                            raycastHit.collider.gameObject.SendMessage("WrongCombination", playerType);
+                            raycastHit.collider.gameObject.GetComponent<Customer>().isAngry = true;
+                            raycastHit.collider.gameObject.GetComponent<Customer>().playersWronglySatisfied.Add(playerType);
+
                             break;
                         }
                     }
@@ -223,7 +225,7 @@ public class PlayerController : MonoBehaviour
                         raycastHit.collider.gameObject.GetComponent<Customer>().satisfied = true;
                         raycastHit.collider.gameObject.GetComponent<Customer>().playerTypeSatisfied = playerType;
                         raycastHit.collider.gameObject.SendMessage("GeneratePickups");
-                        score += choppedItems.Count ;
+                        score += choppedItems.Count * 5 ;
                         timer += 5;
                         GameObject[] choppedItemsHUD = new GameObject[choppedItems.Count];
                         for (int i = 0; i < choppedItems.Count; i++) {
@@ -236,7 +238,8 @@ public class PlayerController : MonoBehaviour
                 }
                 else {
                     raycastHit.collider.gameObject.GetComponent<Customer>().decrementRate = 1;
-                    raycastHit.collider.gameObject.SendMessage("WrongCombination", playerType);
+                    raycastHit.collider.gameObject.GetComponent<Customer>().isAngry = true;
+                    raycastHit.collider.gameObject.GetComponent<Customer>().playersWronglySatisfied.Add(playerType);
                 }
 
             }
