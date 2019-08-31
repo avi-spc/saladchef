@@ -28,11 +28,12 @@ public class PlayerController : MonoBehaviour
 
     public bool chopping;
 
+    private Animator animator;
 
     public GameObject firepoint;
     // Start is called before the first frame update
     void Start() {
-        speed = 2;
+        animator = GetComponent<Animator>();
         timer = 60;
         StartCoroutine(Timer());
         plateInteraction = new string[2];
@@ -52,15 +53,22 @@ public class PlayerController : MonoBehaviour
             if (!chopping) {
                 if (Input.GetKey(KeyCode.W)) {
                     transform.Translate(Vector2.up * speed * Time.deltaTime);
+                    animator.SetInteger("F 1", 0);
                 }
-                if (Input.GetKey(KeyCode.S)) {
+                else if (Input.GetKey(KeyCode.S)) {
                     transform.Translate(Vector2.down * speed * Time.deltaTime);
+                    animator.SetInteger("F 1", 1);
                 }
-                if (Input.GetKey(KeyCode.A)) {
+                else if (Input.GetKey(KeyCode.A)) {
                     transform.Translate(Vector2.left * speed * Time.deltaTime);
+                    animator.SetInteger("F 1", 2);
                 }
-                if (Input.GetKey(KeyCode.D)) {
+                else if (Input.GetKey(KeyCode.D)) {
                     transform.Translate(Vector2.right * speed * Time.deltaTime);
+                    animator.SetInteger("F 1", 3);
+                }
+                else {
+                    animator.SetInteger("F 1", -1);
                 }
 
                 if (Input.GetKeyDown(KeyCode.Q)) {
@@ -79,15 +87,25 @@ public class PlayerController : MonoBehaviour
             if (!chopping) {
                 if (Input.GetKey(KeyCode.UpArrow)) {
                     transform.Translate(Vector2.up * speed * Time.deltaTime);
+                    animator.SetInteger("F 1", 0);
+
                 }
-                if (Input.GetKey(KeyCode.DownArrow)) {
+                else if (Input.GetKey(KeyCode.DownArrow)) {
                     transform.Translate(Vector2.down * speed * Time.deltaTime);
+                    animator.SetInteger("F 1", 1);
+
                 }
-                if (Input.GetKey(KeyCode.LeftArrow)) {
+                else if (Input.GetKey(KeyCode.LeftArrow)) {
                     transform.Translate(Vector2.left * speed * Time.deltaTime);
+                    animator.SetInteger("F 1", 2);
+
                 }
-                if (Input.GetKey(KeyCode.RightArrow)) {
+                else if (Input.GetKey(KeyCode.RightArrow)) {
                     transform.Translate(Vector2.right * speed * Time.deltaTime);
+                    animator.SetInteger("F 1", 3);
+                }
+                else {
+                    animator.SetInteger("F 1", -1);
                 }
 
                 if (Input.GetKeyDown(KeyCode.Keypad0)) {
@@ -253,22 +271,22 @@ public class PlayerController : MonoBehaviour
     private void OnTriggerEnter(Collider col) {
         if (col.gameObject.name.Equals("Left")) {
             rotationAngle = Vector2.left;
-            firepoint.transform.localPosition = new Vector2(-0.34f, 0);
+            firepoint.transform.localPosition = new Vector2(-0.2f, 0);
         }
 
         if (col.gameObject.name.Equals("Right")) {
             rotationAngle = Vector2.right;
-            firepoint.transform.localPosition = new Vector2(0.34f, 0);
+            firepoint.transform.localPosition = new Vector2(0.2f, 0);
         }
 
         if (col.gameObject.name.Equals("Down")) {
             rotationAngle = Vector2.down;
-            firepoint.transform.localPosition = new Vector2(0, -0.34f);
+            firepoint.transform.localPosition = new Vector2(0, -0.2f);
         }
 
         if (col.gameObject.name.Equals("Up")) {
             rotationAngle = Vector2.up;
-            firepoint.transform.localPosition = new Vector2(0, 0.34f);
+            firepoint.transform.localPosition = new Vector2(0, 0.2f);
         }
 
         if (col.gameObject.tag.Equals("Pickups")) {
@@ -291,7 +309,7 @@ public class PlayerController : MonoBehaviour
     }
 
     public void NormalizeSpeed() {
-        speed = 2;
+        speed = 4;
     }
 
     IEnumerator Chopping(string item) {

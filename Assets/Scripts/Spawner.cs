@@ -33,7 +33,7 @@ public class Spawner : MonoBehaviour
 
 
     private void Awake() {
-        customerSpawnPoints = new SpawnPoint[8];
+        customerSpawnPoints = new SpawnPoint[5];
         float startX = -5.92f;
         for (int i = 0; i < customerSpawnPoints.Length; i++) {
             customerSpawnPoints[i].spawnPoint = Instantiate(spawnPrefab, new Vector3(startX, 6.14f, 0), Quaternion.identity);
@@ -41,7 +41,7 @@ public class Spawner : MonoBehaviour
             customerSpawnPoints[i].spawnPoint.name = "SpanPoint_" + i;
             customerSpawnPoints[i].isOccupied = false;
 
-            startX += 1.7f;
+            startX += 2.7f;
         }
     }
     void Start()
@@ -88,7 +88,7 @@ public class Spawner : MonoBehaviour
             }
         }
 
-        numOfCustomers = (40 * emptySpots.Count) / 100;
+        numOfCustomers = (70 * emptySpots.Count) / 100;
 
         placesToBeOccupied.Clear();
 

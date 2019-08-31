@@ -7,7 +7,7 @@ public class Customer : MonoBehaviour
 {
     private Spawner spawner;
 
-    public List<string> allDemands = new List<string> { "A", "P" };
+    public List<string> allDemands = new List<string>();
     public List<string> demands;
     public List<string> specialPickups = new List<string> { "speed", "time", "score" };
 
@@ -34,6 +34,7 @@ public class Customer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        allDemands = new List<string> { "Guava", "Kiwi", "MuskMelon", "WaterMelon", "Pumpkin", "Orange" };
         playerControllers = FindObjectsOfType<PlayerController>();
 
         penaltyToPlayer = 1;
@@ -49,7 +50,7 @@ public class Customer : MonoBehaviour
         }
 
         foreach (string s in demands) {
-            GameObject needPrefab = Resources.Load<GameObject>("Prefabs/" + s + "Icon");
+            GameObject needPrefab = Resources.Load<GameObject>("Prefabs/" + s + "chopIcon");
             GameObject needObject = Instantiate(needPrefab, transform.position, Quaternion.identity);
             needObject.transform.SetParent(gameObject.transform.GetChild(0).GetChild(0));
         }
