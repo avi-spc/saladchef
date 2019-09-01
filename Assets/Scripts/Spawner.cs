@@ -62,8 +62,8 @@ public class Spawner : MonoBehaviour
 
             UIDisplay.GetComponent<UIDisplay>().gameOverPanel.SetActive(true);
 
-            UIDisplay.GetComponent<UIDisplay>().player1_finalScore.text = playerControllers[1].score.ToString();
-            UIDisplay.GetComponent<UIDisplay>().player2_finalScore.text = playerControllers[0].score.ToString();
+            UIDisplay.GetComponent<UIDisplay>().player1_finalScore.text = playerControllers[0].score.ToString();
+            UIDisplay.GetComponent<UIDisplay>().player2_finalScore.text = playerControllers[1].score.ToString();
 
         }
 
@@ -73,7 +73,7 @@ public class Spawner : MonoBehaviour
                 Destroy(c.gameObject);
             }
 
-            UIDisplay.GetComponent<UIDisplay>().winnerText.text = (Mathf.Max(playerControllers[0].score, playerControllers[1].score) == playerControllers[1].score ? "Player " + playerControllers[1].playerType : "Player " + playerControllers[0].playerType) + " wins";  
+            UIDisplay.GetComponent<UIDisplay>().winnerText.text = playerControllers[0].score != playerControllers[1].score ? ((Mathf.Max(playerControllers[0].score, playerControllers[1].score) == playerControllers[1].score ? "Player " + playerControllers[1].playerType : "Player " + playerControllers[0].playerType) + " wins") : "It's a tie";  
         }
     }
 

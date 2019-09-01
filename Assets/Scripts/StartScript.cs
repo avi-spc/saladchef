@@ -5,6 +5,6 @@ public class StartScript : MonoBehaviour
 {
     //Load the game scene
     public void StartGame() {
-        SceneManager.LoadScene("SampleScene");
+        SceneManager.LoadScene("GameScene");
     }
 }

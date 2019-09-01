@@ -32,6 +32,6 @@ public class UIDisplay : MonoBehaviour
 
     //Restart the match
     public void RestartGame() {
-        SceneManager.LoadScene("SampleScene");
+        SceneManager.LoadScene("GameScene");
     }
 }
