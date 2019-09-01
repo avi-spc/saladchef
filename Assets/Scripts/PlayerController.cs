@@ -6,40 +6,40 @@ public class PlayerController : MonoBehaviour
 {
     public GameObject UIDisplay;
 
-    public int speed;
+    [SerializeField]
+    private int speed;
     public int playerType;
-    public int pickUpsLen;
-    public int totalItems;
+    int pickUpsLen;
+    int totalItems;
     public int score;
     public int timer;
 
-    public Vector2 rotationAngle;
+    private Vector2 rotationAngle;
 
-    public Queue pickUps;
+    private Queue pickUps;
     public List<string> choppedItems;
 
     public GameObject pickedItemsCanvas;
     public GameObject choppedItemsCanvas;
 
-    public GameObject vegPicked;
-    public GameObject vegChopped;
+    GameObject vegPicked;
+    GameObject vegChopped;
 
     public GameObject[] moveBounds = new GameObject[3];
 
-    public string[] plateInteraction;
+    private string[] plateInteraction;
 
-    public bool chopping;
+    bool chopping;
 
     private Animator animator;
 
     public GameObject firepoint;
-
     public GameObject chopProgress;
-    // Start is called before the first frame update
+
     void Start() {
         animator = GetComponent<Animator>();
         timer = 60;
-        StartCoroutine(Timer());
+        StartCoroutine(Timer());        //Timer drops down as soon as game starts
         plateInteraction = new string[2];
         pickedItemsCanvas.SetActive(false);
         choppedItemsCanvas.SetActive(false);
@@ -49,15 +49,15 @@ public class PlayerController : MonoBehaviour
     }
 
     private void FixedUpdate() {
-        totalItems = pickUps.Count + choppedItems.Count;
+        //totalItems = pickUps.Count + choppedItems.Count;
     }
-    // Update is called once per frame
+
     void Update() {        
-        if (playerType == 1 && timer > -1) {
-            if (!chopping) {
+        if (playerType == 1 && timer > -1) {        //Controls for player_1
+            if (!chopping) {        //player can't move when chopping is in progress
                 if (Input.GetKey(KeyCode.W) && transform.position.y < moveBounds[0].transform.position.y) {
                     transform.Translate(Vector2.up * speed * Time.deltaTime);
-                    animator.SetInteger("F 1", 0);
+                    animator.SetInteger("F 1", 0);      //Setting animaetion trigger for different directions
                 }
                 else if (Input.GetKey(KeyCode.S) && transform.position.y > moveBounds[1].transform.position.y) {
                     transform.Translate(Vector2.down * speed * Time.deltaTime);
@@ -72,26 +72,26 @@ public class PlayerController : MonoBehaviour
                     animator.SetInteger("F 1", 3);
                 }
                 else {
-                    animator.SetInteger("F 1", -1);
+                    animator.SetInteger("F 1", -1);     //Setting default animation direction
                 }
 
                 if (Input.GetKeyDown(KeyCode.Q)) {
-                    Pick();
+                    Pick();     //Function to pick veggies 
                 }
 
                 if (Input.GetKeyDown(KeyCode.E)) {
-                    Drop();
+                    Drop();     //Function to drop veggies
                 }
             }
 
             UIDisplay.GetComponent<UIDisplay>().player1_Timer.text = "Time left: " + timer.ToString();
             UIDisplay.GetComponent<UIDisplay>().player1_Score.text = "Score: " + score.ToString();
         }
-        else if(playerType == 2 && timer > -1) {
-            if (!chopping) {
+        else if(playerType == 2 && timer > -1) {        //controls for player_2
+            if (!chopping) {        //player can't move when chopping is in progress
                 if (Input.GetKey(KeyCode.UpArrow) && transform.position.y < moveBounds[0].transform.position.y) {
                     transform.Translate(Vector2.up * speed * Time.deltaTime);
-                    animator.SetInteger("F 1", 0);
+                    animator.SetInteger("F 1", 0);      //Setting animaetion trigger for different directions
 
                 }
                 else if (Input.GetKey(KeyCode.DownArrow) && transform.position.y > moveBounds[1].transform.position.y) {
@@ -109,15 +109,15 @@ public class PlayerController : MonoBehaviour
                     animator.SetInteger("F 1", 3);
                 }
                 else {
-                    animator.SetInteger("F 1", -1);
+                    animator.SetInteger("F 1", -1);     //Setting default animation direction
                 }
 
                 if (Input.GetKeyDown(KeyCode.Keypad0)) {
-                    Pick();
+                    Pick();     //Function to pick veggies
                 }
 
                 if (Input.GetKeyDown(KeyCode.Keypad1)) {
-                    Drop();
+                    Drop();     //Function to drop veggies 
                 }
 
             }
@@ -129,168 +129,74 @@ public class PlayerController : MonoBehaviour
     }
 
     void Pick() {
-        Debug.DrawRay(firepoint.transform.position, rotationAngle, Color.blue, 10000f);
         RaycastHit raycastHit;
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle , out raycastHit, 10000f)) {
             if (raycastHit.collider.gameObject.tag.Equals("Veg")) {
-                if (!pickedItemsCanvas.activeSelf)
-                    pickedItemsCanvas.SetActive(true);
-
-                if (pickUps.Count < 2) {
-                    GameObject vPicked = Resources.Load<GameObject>("Prefabs/" + raycastHit.collider.gameObject.name + "Icon");
-                    vegPicked = Instantiate(vPicked, transform.position, Quaternion.identity);
-                    vegPicked.transform.SetParent(pickedItemsCanvas.transform);
-
-                    pickUps.Enqueue(raycastHit.collider.gameObject.name);
-                    pickUpsLen = pickUps.Count;
-                    Debug.Log(playerType .ToString() + pickUps.Count.ToString());
-                }
+                PickVeggies(raycastHit.collider.gameObject);        //Function to pick veggies from source on key press-Q
             }
 
-            RaycastHit[] raycastHits = Physics.RaycastAll(firepoint.transform.position, rotationAngle, 10000f);
-
-            foreach(var e in raycastHits) {
-                if (e.collider.gameObject.tag.Equals("VegOnPlate")) {
-                    if (!pickedItemsCanvas.activeSelf)
-                        pickedItemsCanvas.SetActive(true);
-
-                    if (pickUps.Count < 2) {
-                        GameObject vPicked = Resources.Load<GameObject>("Prefabs/" + e.collider.gameObject.name + "Icon");
-                        vegPicked = Instantiate(vPicked, transform.position, Quaternion.identity);
-                        vegPicked.transform.SetParent(pickedItemsCanvas.transform);
-
-                        pickUps.Enqueue(e.collider.gameObject.name);
-                        pickUpsLen = pickUps.Count;
-                    }
-
-                    Destroy(e.collider.gameObject);
-                }
-            }
-
-            foreach (var item in pickUps) {
-                Debug.Log(item);
-            }
+            PickItemFromPlate();        //Function to pick veggie from plates on key press-Q
+           
         }
     }
 
     void Drop() {
-        Debug.DrawRay(firepoint.transform.position, rotationAngle, Color.red, 10000);
-
         RaycastHit raycastHit;
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
             if (raycastHit.collider.gameObject.tag.Equals("ChopBoard")) {
-                if (pickUps.Count > 0) {
-                    StartCoroutine(Chopping(pickUps.Dequeue().ToString()));
-                    if (pickUps.Count == 0) {
-                        pickedItemsCanvas.SetActive(false);
-                    }
-                }
+                StartChopping();        //Function to chop veggies when near chopping board on key press-E 
             }             
         }
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
             if (raycastHit.collider.gameObject.tag.Equals("Plate")) {
-                if (raycastHit.collider.gameObject.GetComponent<Plate>().itemPlaced == null) {
-                    Destroy(pickedItemsCanvas.transform.GetChild(0).gameObject);
-                    plateInteraction[0] = pickUps.Dequeue().ToString();
-                    plateInteraction[1] = raycastHit.collider.gameObject.name;
-                    raycastHit.collider.gameObject.SendMessage("PlaceItem", plateInteraction);
-                    Debug.Log(pickUps.Count);
-
-                    if (pickUps.Count == 0) {
-                        pickedItemsCanvas.SetActive(false);
-                    }
-                }
+                PlaceItemOnPlate(raycastHit.collider.gameObject);       //Function to place veggies on plate on key press-E
             }
         }
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
-            if (raycastHit.collider.gameObject.tag.Equals("Trash") && choppedItems.Count > 0) {                
-                GameObject[] choppedItemsHUD = new GameObject[choppedItems.Count];
-                for (int i = 0; i < choppedItems.Count; i++) {
-                    Destroy(choppedItemsCanvas.transform.GetChild(i).gameObject);
-                }
-
-                score--;
-
-                choppedItems.Clear();
-                choppedItemsCanvas.SetActive(false);
-
+            if (raycastHit.collider.gameObject.tag.Equals("Trash") && choppedItems.Count > 0) {
+                ThrowInTrash();     //Function to throw chopped veggies in trashcan on key press-E
             }
         }
 
         if (Physics.Raycast(firepoint.transform.position, rotationAngle, out raycastHit, 10000f)) {
             if (raycastHit.collider.gameObject.tag.Equals("Customer")) {
-                if (raycastHit.collider.gameObject.GetComponent<Customer>().demands.Count == choppedItems.Count) {
-                    raycastHit.collider.gameObject.GetComponent<Customer>().demands.Sort();
-                    choppedItems.Sort();
-
-                    int demandCounter = 0;
-
-                    for (int i = 0; i < choppedItems.Count; i++) {
-                        if (choppedItems[i] == raycastHit.collider.gameObject.GetComponent<Customer>().demands[i]) {
-                            demandCounter++;
-                        }
-                        else {
-                            Debug.Log("User not satisfied");
-                            raycastHit.collider.gameObject.GetComponent<Customer>().decrementRate = 1;
-                            raycastHit.collider.gameObject.GetComponent<Customer>().isAngry = true;
-                            raycastHit.collider.gameObject.GetComponent<Customer>().playersWronglySatisfied.Add(playerType);
-
-                            break;
-                        }
-                    }
-
-                    if (demandCounter == choppedItems.Count) {
-                        Debug.Log("Satisfied");
-                        raycastHit.collider.gameObject.GetComponent<Customer>().satisfied = true;
-                        raycastHit.collider.gameObject.GetComponent<Customer>().playerTypeSatisfied = playerType;
-                        raycastHit.collider.gameObject.SendMessage("GeneratePickups");
-                        score += choppedItems.Count * 5 ;
-                        timer += 5;
-                        GameObject[] choppedItemsHUD = new GameObject[choppedItems.Count];
-                        for (int i = 0; i < choppedItems.Count; i++) {
-                            Destroy(choppedItemsCanvas.transform.GetChild(i).gameObject);
-                        }
-
-                        choppedItems.Clear();
-                        choppedItemsCanvas.SetActive(false);
-                    }
-                }
-                else {
-                    raycastHit.collider.gameObject.GetComponent<Customer>().decrementRate = 1;
-                    raycastHit.collider.gameObject.GetComponent<Customer>().isAngry = true;
-                    raycastHit.collider.gameObject.GetComponent<Customer>().playersWronglySatisfied.Add(playerType);
-                }
-
+                SatisfyCustomer(raycastHit.collider.gameObject);        //Function to satisfy customer demands when standing near a particular customer on key press-E
             }
         }
 
     }
 
     private void OnTriggerEnter(Collider col) {
-        if (col.gameObject.name.Equals("Left")) {
-            rotationAngle = Vector2.left;
-            firepoint.transform.localPosition = new Vector2(-0.2f, 0);
+
+        string direction = col.gameObject.name;
+
+        //Setting the direction of point of raycaster in which direction should the ray be casted to take different actions like picking veggies, satisfying customer etc.
+        switch (direction) {
+            case "Left":
+                rotationAngle = Vector2.left;       //for picking vegggies
+                firepoint.transform.localPosition = new Vector2(-0.2f, 0);
+                break;
+            case "Right":
+                rotationAngle = Vector2.right;      //for picking veggies
+                firepoint.transform.localPosition = new Vector2(0.2f, 0);
+                break;
+            case "Down":
+                rotationAngle = Vector2.down;       //for placing item on plate, chopping, and throwing in trashcan
+                firepoint.transform.localPosition = new Vector2(0, -0.2f);
+                break;
+            case "Up":
+                rotationAngle = Vector2.up;         //for satisfying customer
+                firepoint.transform.localPosition = new Vector2(0, 0.2f);
+                break;
+
         }
 
-        if (col.gameObject.name.Equals("Right")) {
-            rotationAngle = Vector2.right;
-            firepoint.transform.localPosition = new Vector2(0.2f, 0);
-        }
 
-        if (col.gameObject.name.Equals("Down")) {
-            rotationAngle = Vector2.down;
-            firepoint.transform.localPosition = new Vector2(0, -0.2f);
-        }
-
-        if (col.gameObject.name.Equals("Up")) {
-            rotationAngle = Vector2.up;
-            firepoint.transform.localPosition = new Vector2(0, 0.2f);
-        }
-
+        //Logic related to special pickups such as speed, time, score when satisfying customer before 70% of wait time
         if (col.gameObject.tag.Equals("Pickups")) {
             if (col.gameObject.GetComponent<PowerPickups>().forPlayer == playerType) {
                 if (col.gameObject.GetComponent<PowerPickups>().pickupType == "speed") {
@@ -310,14 +216,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
+    //Function to normalize speed after 10 seconds of grabbing speed special pickup
     public void NormalizeSpeed() {
         speed = 4;
     }
 
-    IEnumerator Chopping(string item) {
-        Debug.Log("chopping");
+    //Enumerator to process chopping for 2 seconds 
+    IEnumerator Chop(string item) {
         chopping = true;
-        Debug.Log(pickUps.Count);
         
         Destroy(pickedItemsCanvas.transform.GetChild(0).gameObject);
 
@@ -345,7 +252,115 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void FulfillCustomerDemand() {
+    void PickVeggies(GameObject vegetable) {
+        if (!pickedItemsCanvas.activeSelf)
+            pickedItemsCanvas.SetActive(true);
 
+        if (pickUps.Count < 2) {
+            GameObject vPicked = Resources.Load<GameObject>("Prefabs/" + vegetable.name + "Icon");      //Instantiating prefabs for HUD directly from resources directory
+            vegPicked = Instantiate(vPicked, transform.position, Quaternion.identity);
+            vegPicked.transform.SetParent(pickedItemsCanvas.transform);
+
+            pickUps.Enqueue(vegetable.name);
+            pickUpsLen = pickUps.Count;
+        }
+    }
+
+    void StartChopping() {
+        if (pickUps.Count > 0) {
+            StartCoroutine(Chop(pickUps.Dequeue().ToString()));
+            if (pickUps.Count == 0) {
+                pickedItemsCanvas.SetActive(false);
+            }
+        }
+    }
+
+    void SatisfyCustomer(GameObject customer) {
+        if (customer.GetComponent<Customer>().demands.Count == choppedItems.Count) {
+            customer.GetComponent<Customer>().demands.Sort();
+            choppedItems.Sort();
+
+            int demandCounter = 0;
+
+            for (int i = 0; i < choppedItems.Count; i++) {
+                if (choppedItems[i] == customer.GetComponent<Customer>().demands[i]) {
+                    demandCounter++;
+                }
+                else {
+                    customer.GetComponent<Customer>().decrementRate = 1;
+                    customer.GetComponent<Customer>().isAngry = true;
+                    customer.GetComponent<Customer>().playersWronglySatisfied.Add(playerType);
+
+                    break;
+                }
+            }
+
+            if (demandCounter == choppedItems.Count) {
+                customer.GetComponent<Customer>().satisfied = true;
+                customer.GetComponent<Customer>().playerTypeSatisfied = playerType;
+                customer.SendMessage("GeneratePickups");
+                score += choppedItems.Count * 5;
+                timer += 5;
+                GameObject[] choppedItemsHUD = new GameObject[choppedItems.Count];
+                for (int i = 0; i < choppedItems.Count; i++) {
+                    Destroy(choppedItemsCanvas.transform.GetChild(i).gameObject);
+                }
+
+                choppedItems.Clear();
+                choppedItemsCanvas.SetActive(false);
+            }
+        }
+        else {
+            customer.GetComponent<Customer>().decrementRate = 1;
+            customer.GetComponent<Customer>().isAngry = true;
+            customer.GetComponent<Customer>().playersWronglySatisfied.Add(playerType);
+        }
+    }
+
+    void PlaceItemOnPlate(GameObject plate) {
+        if (plate.GetComponent<Plate>().itemPlaced == null) {
+            Destroy(pickedItemsCanvas.transform.GetChild(0).gameObject);
+            plateInteraction[0] = pickUps.Dequeue().ToString();
+            plateInteraction[1] = plate.name;
+            plate.SendMessage("PlaceItem", plateInteraction);
+
+            if (pickUps.Count == 0) {
+                pickedItemsCanvas.SetActive(false);
+            }
+        }
+    }
+
+    void ThrowInTrash() {
+        GameObject[] choppedItemsHUD = new GameObject[choppedItems.Count];
+        for (int i = 0; i < choppedItems.Count; i++) {
+            Destroy(choppedItemsCanvas.transform.GetChild(i).gameObject);
+        }
+
+        score--;
+
+        choppedItems.Clear();
+        choppedItemsCanvas.SetActive(false);
+    }
+
+    void PickItemFromPlate() {
+        RaycastHit[] raycastHits = Physics.RaycastAll(firepoint.transform.position, rotationAngle, 10000f);
+
+        foreach (var e in raycastHits) {
+            if (e.collider.gameObject.tag.Equals("VegOnPlate")) {
+                if (!pickedItemsCanvas.activeSelf)
+                    pickedItemsCanvas.SetActive(true);
+
+                if (pickUps.Count < 2) {
+                    GameObject vPicked = Resources.Load<GameObject>("Prefabs/" + e.collider.gameObject.name + "Icon");      //spawning chopped veggie icon at player's HUD
+                    vegPicked = Instantiate(vPicked, transform.position, Quaternion.identity);
+                    vegPicked.transform.SetParent(pickedItemsCanvas.transform);
+
+                    pickUps.Enqueue(e.collider.gameObject.name);
+                    pickUpsLen = pickUps.Count;
+                }
+
+                Destroy(e.collider.gameObject);
+            }
+        }
     }
 }

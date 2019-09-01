@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,24 +7,23 @@ public class ScoreSaver : MonoBehaviour
     public Spawner spawner;
     public UIDisplay uI;
 
-    public int scoreIndex;
+    int scoreIndex;
 
-    public SortedSet<int> topScores = new SortedSet<int>();
-    public List<int> t;
+    SortedSet<int> topScores = new SortedSet<int>();        //Sorted set used to avoid same high score duplicacy
+    List<int> t;
 
-    public bool scoreAvailable;
-    public bool getScores;
+    bool scoreAvailable;
+    bool getScores;
 
     public GameObject topScorePrefab;
-    // Start is called before the first frame update
     void Start()
-    {       
+    {
+        t = new List<int>();    
         scoreIndex = 1;
         getScores = true;
         scoreAvailable = true;
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (spawner.gameOver && scoreAvailable) {
@@ -36,7 +34,7 @@ public class ScoreSaver : MonoBehaviour
 
     void SetTopScores() {
 
-        while (getScores) {
+        while (getScores) {     //get all scores stored in PlayerPrefs
             if (PlayerPrefs.HasKey(scoreIndex.ToString())) {
                 topScores.Add(PlayerPrefs.GetInt(scoreIndex.ToString()));
             }
@@ -46,6 +44,7 @@ public class ScoreSaver : MonoBehaviour
             scoreIndex++;
         }
 
+        //Add new scores to the PlayerPrefs
         topScores.Add(spawner.playerControllers[0].score);
         topScores.Add(spawner.playerControllers[1].score);
         
@@ -64,14 +63,10 @@ public class ScoreSaver : MonoBehaviour
 
         PlayerPrefs.Save();
 
-
-        for (int i = 0; i < t.Count; i++) {
-            Debug.Log(t[i]);
-        }
-        
         ShowScores();
     }
 
+    //Show top scores after the game is over
     void ShowScores() {
         for (int i = 0; i < Mathf.Min(t.Count, 10); i++) {
             GameObject topScoreText = Instantiate(topScorePrefab);

@@ -1,20 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PowerPickups : MonoBehaviour
 {
-    public int forPlayer;
-    public string pickupType;
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public int forPlayer;           //Pickup spwaned for which player
+    public string pickupType;       //Type of spcial pickup - speed, score, time
+    
 }

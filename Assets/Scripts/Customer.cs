@@ -7,31 +7,30 @@ public class Customer : MonoBehaviour
 {
     private Spawner spawner;
 
-    public List<string> allDemands = new List<string>();
+    List<string> allDemands = new List<string>();
     public List<string> demands;
-    public List<string> specialPickups = new List<string> { "speed", "time", "score" };
+    List<string> specialPickups = new List<string> { "speed", "time", "score" };
 
     public Image timer;
 
     public GameObject[] pickupDimension = new GameObject[3];
 
-    public int numOfDemands;
+    int numOfDemands;
     public int playerTypeSatisfied;
     public int spawnedIndex;
-    public int penaltyToPlayer;
+    int penaltyToPlayer;
     public HashSet<int> playersWronglySatisfied = new HashSet<int>();
 
-    public float waitTime;
-    public float totalWaitTime;
+    float waitTime;
+    float totalWaitTime;
     public float decrementRate;
 
     public bool satisfied;
-    public bool stop;
+    bool stop;
     public bool isAngry;
 
-    public PlayerController[] playerControllers;
+    PlayerController[] playerControllers;
 
-    // Start is called before the first frame update
     void Start()
     {
         allDemands = new List<string> { "Guava", "Kiwi", "MuskMelon", "WaterMelon", "Pumpkin", "Orange" };
@@ -49,12 +48,14 @@ public class Customer : MonoBehaviour
             demands.Add(allDemands[Random.Range(0, allDemands.Count)]);
         }
 
+        //spawning chooped veggie icon at customer's HUD
         foreach (string s in demands) {
             GameObject needPrefab = Resources.Load<GameObject>("Prefabs/" + s + "chopIcon");
             GameObject needObject = Instantiate(needPrefab, transform.position, Quaternion.identity);
             needObject.transform.SetParent(gameObject.transform.GetChild(0).GetChild(0));
         }
 
+        //Defining the area bounds where special pickups has to be spawned
         for (int i = 0; i < pickupDimension.Length; i++) {
             pickupDimension[i] = GameObject.Find("Dimension").transform.GetChild(i).gameObject;
         }
@@ -62,13 +63,12 @@ public class Customer : MonoBehaviour
         StartCoroutine(Wait());
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (!stop) {
             transform.position = Vector3.MoveTowards(transform.position, new Vector3(transform.position.x, 4.62f, transform.position.z), Random.Range(0.001f, 0.1f));
         }
-        if (satisfied || waitTime <= 0) {
+        if (satisfied || waitTime <= 0) {       //customer gameObject destroyed if satisfied or wait time reaches 0
             spawner.customerSpawnPoints[spawnedIndex].isOccupied = false;
             transform.Translate(Vector3.up * Random.Range(2, 3) * Time.deltaTime);
             Destroy(gameObject, 2f);
@@ -78,6 +78,7 @@ public class Customer : MonoBehaviour
             stop = true;
     }
 
+    //Calculates waiting time for the customer
     IEnumerator Wait() {
         while (waitTime > 0 && !satisfied) {
             waitTime -= decrementRate;
@@ -85,12 +86,14 @@ public class Customer : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
         }
 
+        //Penalize player when wait time reaches 0 and customer is not satisfied yet
         if (waitTime <= 0) {
             foreach(var pC in playerControllers) {
                 if(pC.timer!=0)
                     pC.score -= penaltyToPlayer;
             }
 
+            //Penalty is doubled if customer is given wrong combination of veggies
             if (isAngry) {
                 penaltyToPlayer = 2 * penaltyToPlayer;
                 foreach (var pC in playerControllers) {
@@ -102,10 +105,10 @@ public class Customer : MonoBehaviour
         }
     }
 
+    //Special pickups are spawned at random locations if customer is satisfied before wait time falls below 70% of total wait time
     void GeneratePickups() {
         if (waitTime > (70 * totalWaitTime) / 100) {
             int pT = Random.Range(0, specialPickups.Count-1);
-            Debug.Log(specialPickups[pT]);
             GameObject pickUpPrefab = Resources.Load<GameObject>("Prefabs/" + specialPickups[pT]);
             GameObject pickUpObject = Instantiate(pickUpPrefab, new Vector3(Random.Range(pickupDimension[0].transform.position.x, pickupDimension[2].transform.position.x), Random.Range(pickupDimension[0].transform.position.y, pickupDimension[1].transform.position.y), 0), Quaternion.identity);
             pickUpObject.GetComponent<PowerPickups>().forPlayer = playerTypeSatisfied;

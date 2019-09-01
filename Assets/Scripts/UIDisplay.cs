@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
@@ -22,18 +20,17 @@ public class UIDisplay : MonoBehaviour
     public GameObject topScorePanel;
 
 
-    // Start is called before the first frame update
     void Start()
     {
         gameOverPanel.SetActive(false);
     }
 
-    // Update is called once per frame
     void Update()
     {
               
     }
 
+    //Restart the match
     public void RestartGame() {
         SceneManager.LoadScene("SampleScene");
     }

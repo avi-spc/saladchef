@@ -5,19 +5,19 @@ using System.Linq;
 
 public class Spawner : MonoBehaviour
 {
+    System.Random rnd = new System.Random();
+
     public GameObject UIDisplay;
 
     public GameObject spawnPrefab;
-
     public GameObject customerPrefab;
 
-    public Customer[] allCustomers;
-    // Start is called before the first frame update
-    public int numOfCustomers;
-    public List<int> emptySpots;
-    public List<int> placesToBeOccupied;
+    Customer[] allCustomers;
 
-    System.Random rnd = new System.Random();
+    int numOfCustomers;
+    List<int> emptySpots;
+    List<int> placesToBeOccupied;
+
 
     public bool gameOver;
 
@@ -33,8 +33,13 @@ public class Spawner : MonoBehaviour
 
 
     private void Awake() {
+        emptySpots = new List<int>();
+        placesToBeOccupied = new List<int>();
+
         customerSpawnPoints = new SpawnPoint[5];
         float startX = -5.92f;
+
+        //creating spawnpoints for the customers
         for (int i = 0; i < customerSpawnPoints.Length; i++) {
             customerSpawnPoints[i].spawnPoint = Instantiate(spawnPrefab, new Vector3(startX, 6.14f, 0), Quaternion.identity);
             customerSpawnPoints[i].spawnPoint.transform.SetParent(GameObject.Find("CustomerSpawnPoints").transform);
@@ -44,14 +49,13 @@ public class Spawner : MonoBehaviour
             startX += 2.7f;
         }
     }
-    void Start()
-    {
+
+    void Start() {
         playerControllers = FindObjectsOfType<PlayerController>();
 
         StartCoroutine(CallSpwaner());
     }
 
-    // Update is called once per frame
     void Update() {
         if (playerControllers[0].timer == 0 && playerControllers[1].timer == 0) {
             gameOver = true;
@@ -63,7 +67,7 @@ public class Spawner : MonoBehaviour
 
         }
 
-        if (gameOver) {
+        if (gameOver) {     //If game over destroy all customers that are currently waiting and display winner
             allCustomers = FindObjectsOfType<Customer>();
             foreach (var c in allCustomers) {
                 Destroy(c.gameObject);
@@ -80,6 +84,7 @@ public class Spawner : MonoBehaviour
         }
     }
 
+    //Calculate empty spots for customer to be spawned to avoid double spaning at the same spot 
     void CalculateEmptySpots() {
         emptySpots.Clear();
         for (int i = 0; i < customerSpawnPoints.Length; i++) {
@@ -88,7 +93,7 @@ public class Spawner : MonoBehaviour
             }
         }
 
-        numOfCustomers = (70 * emptySpots.Count) / 100;
+        numOfCustomers = (70 * emptySpots.Count) / 100;     //customers will be spawned occupying 70% of the empty spots
 
         placesToBeOccupied.Clear();
 
@@ -101,10 +106,10 @@ public class Spawner : MonoBehaviour
         CustomerSpawner(placesToBeOccupied);
     }
 
+    //Spawn customers at the empty spots calculated
     public void CustomerSpawner(List<int> spawnPositions) {
         for (int i = 0; i < placesToBeOccupied.Count; i++) {
             GameObject customer = Instantiate(customerPrefab, customerSpawnPoints[spawnPositions[i]].spawnPoint.transform.position, customerSpawnPoints[spawnPositions[i]].spawnPoint.transform.rotation);
-            //customer.transform.SetParent(customerSpawnPoints[spawnPositions[i]].spawnPoint.transform);
             customer.GetComponent<Customer>().spawnedIndex = spawnPositions[i];
             customerSpawnPoints[spawnPositions[i]].isOccupied = true;
         }
