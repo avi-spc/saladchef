@@ -13,6 +13,9 @@ A simulation based game in which restaraunt owner serve customers with different
 ## Assets
 
 - [CraftPix]([https://craftpix.net/](https://craftpix.net/))
+
+**Available on itch.io: ** [Saladchef](https://avi-spc.itch.io/saladchef)
+
 ## Screenshots
 **Start Screen**
 ![](Assets/Screenshots/MainMenu.png)
