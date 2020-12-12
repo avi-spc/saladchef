@@ -15,11 +15,11 @@ A simulation based game in which restaraunt owner serve customers with different
 - [CraftPix]([https://craftpix.net/](https://craftpix.net/))
 ## Screenshots
 **Start Screen**
-![](Assets/Screenshots/Screenshot%20(230).png)
+![](Assets/Screenshots/MainMenu.png)
 **Game Screen**
-![](Assets/Screenshots/Screenshot%20(231).png)
+![](Assets/Screenshots/Game.png)
 **Final Scores with top ten scores**
-![](Assets/Screenshots/Screenshot%20(232).png)
+![](Assets/Screenshots/Score.png)
 
 ## Controls
 
